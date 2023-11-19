@@ -24,7 +24,7 @@ library(tidyverse)
         Culturas e produtos pecuários
 ```{r}
 nutrition <- readr::read_csv(
-    "c:/Users/italo/OneDrive/Área de Trabalho/VsCode/faostats/FAOStats Suite of Food Security Indicators.csv") |> # nolint
+    "c:/Users/italo/OneDrive/Área de Trabalho/VsCode/faostats/FAOStats Average supply of protein of animal origin.csv") |> # nolint
     janitor::clean_names("snake") |>
     dplyr::mutate(
         name = dplyr::if_else(
@@ -52,11 +52,9 @@ nutrition <- readr::read_csv(
 ```{r}
 nutrition_new <- nutrition |>
     dplyr::filter(
-        item == "Average dietary energy requirement (kcal/cap/day)" # Minimum dietary energy requirement (kcal/cap/day)
+        item == "Average supply of protein of animal origin (g/cap/day) (3-year average)"
     ) |>
-    dplyr::mutate(
-        value = readr::parse_number(value)
-    ) |>
+    #dplyr::mutate(value = readr::parse_number(value)) |>
     dplyr::glimpse()
 ```
 
@@ -81,8 +79,8 @@ join <- world |>
 
 ```{r}
 #viridris_option <- "inferno"
-title_text <- glue::glue("Disponibilidade energética média da dieta humana")
-caption_text <- glue::glue("**Dados** FAOStats (ano 2022) **| Gráfico** Ítalo Monteiro") # nolint
+title_text <- glue::glue("Fornecimento médio de proteína de origem animal")
+caption_text <- glue::glue("**Dados** FAOStats (média de 2018 a 2020) **| Gráfico** Ítalo Monteiro") # nolint
 
 p1 <- ggplot(join) +
     geom_sf(aes(fill = value)) +
@@ -92,7 +90,7 @@ p1 <- ggplot(join) +
     #) +
   scale_y_continuous(labels = scales::comma) +
     labs(
-        fill = "kcal/per capita/dia",
+        fill = "g/per capita/dia",
         title = title_text,
         caption = caption_text
     )
@@ -128,7 +126,7 @@ sf::st_crs(join)
 ```{r}
 p3 <- p2 +
     coord_sf(crs = "+proj=robin")
-p3
+#p3
 ```
 
 
@@ -155,5 +153,5 @@ p3b
 
 
 ```{r}
-ggsave("Food segurity/NecessidadeMediaEnergiaDierta.png", plot = p3b, dpi = 600)
+ggsave("Food segurity/NecessidadeMediaEnergiaDierta.png", plot = p3b, dpi = 450)
 ```
