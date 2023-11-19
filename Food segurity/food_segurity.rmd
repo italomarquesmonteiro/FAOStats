@@ -155,5 +155,5 @@ p3b
 
 
 ```{r}
-ggsave("Food segurity/NecessidadeMediaEnergiaDierta.png", plot = p3b, dpi = 450)
+ggsave("Food segurity/NecessidadeMediaEnergiaDierta.png", plot = p3b, dpi = 600)
 ```
