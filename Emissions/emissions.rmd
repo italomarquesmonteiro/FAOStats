@@ -1,0 +1,151 @@
+---
+title: "Climate change: Agrifood systems emissions"
+description: "emissions at the farm gate"
+author: 
+    - name: "Ítalo Marques-Monteiro"
+    - email: "italo.marques.monteiro@outlook.com"
+    - github: https://github.com/italomarquesmonteiro
+    - kaggle: https://www.kaggle.com/talomarquesmonteiro
+    - linkedin: linkedin.com/in/ítalo-monteiro-0b2516144
+    - lattes: http://lattes.cnpq.br/7174985368517137
+    - orcid_id: https://orcid.org/0000-0003-4367-1034
+    - affiliation: Smart Data  
+        
+date: "2023-11-17"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+```
+
+    Crops and livestock products
+        Culturas e produtos pecuários
+```{r}
+emissions <- readr::read_csv(
+    "c:/Users/italo/OneDrive/Área de Trabalho/VsCode/faostats/FAOStats Emissions from Livestock.csv") |> # nolint
+    janitor::clean_names("snake") |>
+    dplyr::mutate(
+        name = dplyr::if_else(
+            stringr::str_detect(
+                area, "China"), "China", area),
+        name = dplyr::case_when(
+            area == "Bolivia (Plurinational State of)" ~ "Bolivia",
+            area == "Czechia" ~ "Czech Republic",
+            area == "Democratic People's Republic of Korea" ~ "Dem. Rep. Korea",
+            area == "Iran (Islamic Republic of)" ~ "Iran",
+            area == "Lao People's Democratic Republic" ~ "Lao PDR",
+            area == "Syrian Arab Republic" ~ "Syria",
+            area == "Türkiye" ~ "Turkey",
+            area == "United Republic of Tanzania" ~ "Tanzania",
+            area == "United States of America" ~ "United States",
+            area == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
+            area == "Viet Nam" ~ "Vietnam",
+            TRUE~ area
+        ), .before = element_code
+    ) |>
+    dplyr::glimpse()
+```
+
+```{r}
+emissions_cattle <- emissions |>
+    dplyr::select(name, element, item, unit, value) |>
+    dplyr::filter(
+        item == "Cattle, dairy" &
+        element == "Enteric fermentation (Emissions CH4)") |>
+    dplyr::glimpse()
+```
+
+
+    World map data
+        Dados do mapa do mundo
+```{r}
+world <- rnaturalearth::ne_countries(
+  scale = 110, type = "countries", returnclass = "sf") |>
+  dplyr::select(name_long) |>
+  dplyr::glimpse()
+```
+
+
+```{r}
+join <- world |>
+    #dplyr::anti_join(production, by = c("name_long" = "area")) |>
+    dplyr::full_join(emissions_cattle, by = c("name_long" = "name")) 
+```
+
+
+
+```{r}
+#viridris_option <- "inferno"
+title_text <- glue::glue("Enteric fermentation (emissions CH4)")
+caption_text <- glue::glue("**Data** FAOStats (ano 2021) **| plot** Ítalo Monteiro") # nolint
+
+p1 <- ggplot(join) +
+    geom_sf(aes(fill = value)) +
+    scico::scale_fill_scico(palette = "bamako", direction = -1) +
+    #scale_fill_viridis_c(
+    #option = viridris_option
+    #) +
+  scale_y_continuous(labels = scales::comma) +
+    labs(
+        fill = "Kilotonnes",
+        title = title_text,
+        caption = caption_text
+    )
+#p1
+```
+
+
+```{r}
+col_back <- "grey30"
+theme_map <- theme_void() +
+    theme(
+        plot.title = ggtext::element_markdown(face = "bold", family = "Source Sans Pro", size = 24, hjust = 0.5, color = "grey70",),  #nolint
+        plot.caption = ggtext::element_markdown(face = "italic", family = "Fira Sans Pro", size = 12, color = "grey70"), # nolint
+        legend.position = "bottom",
+        legend.text = element_text(color = "grey70"),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        plot.background = element_rect(fill = col_back, color = NA),
+        legend.title = element_text(
+            face = "bold",
+            color = "grey70",
+            margin = margin(0, 0, 0.25, 0, "cm")
+        )
+    )
+p2 <- p1 + theme_map
+#p2
+```
+
+
+```{r}
+sf::st_crs(join)
+```
+
+```{r}
+p3 <- p2 +
+    coord_sf(crs = "+proj=robin")
+#p3
+```
+
+
+```{r}
+grat <- sf::st_graticule(lat = c(-89.9, seq(-80, 80, 20), 89.9))
+ 
+p3b  <- p2 + 
+    geom_sf(
+        grat, mapping = aes(
+            geometry = geometry),
+            color = "gray70", 
+        alpha = 0.5
+  ) +
+  coord_sf(crs = "+proj=robin") +
+   guides(fill = guide_colorbar(
+    direction = "horizontal",
+    title.position = "top",
+        title.hjust = .5,
+        title.vjust = .1,
+            barwidth = 20,
+                 barheight = .5))
+p3b
+```
