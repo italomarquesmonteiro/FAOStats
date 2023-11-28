@@ -1,0 +1,141 @@
+---
+title: ""
+description: ""
+author script: 
+  - name: "Ítalo Marques-Monteiro"
+    github: https://github.com/italomarquesmonteiro
+    kaggle: https://www.kaggle.com/talomarquesmonteiro
+    linkedin: linkedin.com/in/ítalo-monteiro-0b2516144
+    lattes: http://lattes.cnpq.br/7174985368517137
+    orcid_id: https://orcid.org/0000-0003-4367-1034
+    affiliation: Smart Data
+        
+date: "2023-11-27"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+world <- rnaturalearth::ne_countries(
+    scale = 110, type = "countries", returnclass = "sf")
+```
+
+```{r}
+temp <- readr::read_csv(
+    "c:/Users/italo/OneDrive/Área de Trabalho/VsCode/faostats/FAOStat Crops and livestock products.csv") |> # nolint
+    janitor::clean_names("snake") |>
+    dplyr::mutate(
+        name = dplyr::if_else(
+            stringr::str_detect(
+                area, "China"), "China", area),
+        name = dplyr::case_when(
+            area == "Bolivia (Plurinational State of)" ~ "Bolivia",
+            area == "Czechia" ~ "Czech Republic",
+            area == "Democratic People's Republic of Korea" ~ "Dem. Rep. Korea",
+            area == "Iran (Islamic Republic of)" ~ "Iran",
+            area == "Lao People's Democratic Republic" ~ "Lao PDR",
+            area == "Syrian Arab Republic" ~ "Syria",
+            area == "Türkiye" ~ "Turkey",
+            area == "United Republic of Tanzania" ~ "Tanzania",
+            area == "United States of America" ~ "United States",
+            area == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
+            area == "Viet Nam" ~ "Vietnam",
+            TRUE~ area
+        ), .before = element_code
+    ) |>
+    dplyr::select(name, element, item, unit, value) |>
+    dplyr::glimpse()
+```
+
+
+```{r}
+viridris_option <- "inferno"
+
+top_crop <- temp |>
+    dplyr::filter(item %in% c(
+            "Soya beans", "Maize (corn)", "Millet", "Rice",
+            "Wheat", "Barley", "Sorghum", "Rape or colza seed", "Seed cotton, unginned") & # nolint
+        element == "Production" #&
+            #!name == "China, mainland" #&
+               # value >= 12610000
+    )
+
+map <- world |>
+    dplyr::select(name_long, geometry) |>
+  left_join(top_crop, by = c("name_long" = "name"))
+```
+
+
+```{r}
+algodao <- map |>
+    dplyr::filter(item == "Seed cotton, unginned") |>
+    dplyr::arrange(desc(value))
+```
+
+
+```{r}
+p1 <- ggplot() +
+    geom_sf(data = world, mapping = aes(geometry = geometry),
+        fill = "grey90", color = "grey90") +
+    geom_sf(data = algodao, mapping = aes(geometry = geometry, fill = value/1000000)) + # nolint
+    viridis::scale_fill_viridis(discrete = FALSE) +
+    #scale_fill_viridis_(option = viridris_option) +
+    #scico::scale_fill_scico(palette = "bamako", direction = -1, limits = c(0, 140)) + # nolint
+    labs(
+        title = "Produção de algodão (*Gossypium hirsutum*) ",
+        caption = "**Dados** FAO (ano 2021) **| Plot** Ítalo Monteiro",
+        fill = "Milhões de Toneladas"
+    ) #1D201F
+col_back <- "white"
+theme_map <- theme_void() +
+    theme(
+        plot.title = ggtext::element_markdown(face = "bold", family = "Source Sans Pro", size = 24, hjust = 0.5, color = "grey70",),  #nolint
+        plot.caption = ggtext::element_markdown(vjust = 5,face = "bold", family = "Fira Sans Pro", size = 12, color = "grey70"), # nolint
+        legend.position = "bottom",
+        legend.text = element_text(color = "grey70"),
+        plot.margin = margin(1, 1, 1, 1, "cm"),
+        plot.background = element_rect(fill = col_back, color = NA),
+        legend.title = element_text(
+            face = "bold",
+            color = "grey70",
+            margin = margin(0, 0, 0.25, 0, "cm")
+        )
+    )
+p2 <- p1 + theme_map
+sf::st_crs(world)
+p3 <- p2 +
+    coord_sf(crs = "+proj=robin")
+grat <- sf::st_graticule(lat = c(-89.9, seq(-80, 80, 20), 89.9))
+
+p3b  <- p2 +
+    geom_sf(
+        grat, mapping = aes(
+            geometry = geometry),
+            color = "gray60",
+        alpha = 0.5
+  ) +
+  coord_sf(crs = "+proj=robin") +
+   guides(fill = guide_colorbar(
+    direction = "horizontal",
+    title.position = "top",
+        title.hjust = .5,
+        title.vjust = .1,
+            barwidth = 20,
+                 barheight = .5))
+p3b
+algodao <- p3b
+```
+
+
+```{r}
+ggsave(
+    "Crops and livestock/algodao.png",
+        plot = algodao,
+            dpi = 600,
+            width = 12,
+                height = 8
+                )
+```
