@@ -41,6 +41,7 @@ temp <- readr::read_csv(
             area == "Türkiye" ~ "Turkey",
             area == "United Republic of Tanzania" ~ "Tanzania",
             area == "United States of America" ~ "United States",
+            area == "United Kingdom of Great Britain and Northern Ireland" ~ "United Kingdom", # nolint
             area == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
             area == "Viet Nam" ~ "Vietnam",
             TRUE~ area
@@ -50,44 +51,42 @@ temp <- readr::read_csv(
     dplyr::glimpse()
 ```
 
+dplyr::filter(item == "Meat of cattle with the bone, fresh or chilled" &
+        element == "Yield/Carcass Weight")
 
 ```{r}
-viridris_option <- "inferno"
-
-top_crop <- temp |>
-    dplyr::filter(item %in% c(
-            "Soya beans", "Maize (corn)", "Millet", "Rice",
-            "Wheat", "Barley", "Sorghum", "Rape or colza seed", "Seed cotton, unginned") & # nolint
-        element == "Production" #&
-            #!name == "China, mainland" #&
-               # value >= 12610000
-    )
+leite_cattle <- temp |>
+    dplyr::filter(item == "Raw milk of cattle")
 
 map <- world |>
     dplyr::select(name_long, geometry) |>
-  left_join(top_crop, by = c("name_long" = "name"))
+  left_join(leite_cattle, by = c("name_long" = "name"))
 ```
 
 
+
 ```{r}
-algodao <- map |>
-    dplyr::filter(item == "Seed cotton, unginned") |>
+leite_producao <- map |>
+    dplyr::filter(item == "Raw milk of cattle" &
+        element == "Production"
+    ) |>
     dplyr::arrange(desc(value))
 ```
 
 
 ```{r}
+viridris_option <- "inferno"
 p1 <- ggplot() +
     geom_sf(data = world, mapping = aes(geometry = geometry),
         fill = "grey90", color = "grey90") +
-    geom_sf(data = algodao, mapping = aes(geometry = geometry, fill = value/1000000)) + # nolint
-    viridis::scale_fill_viridis(discrete = FALSE) +
-    #scale_fill_viridis_(option = viridris_option) +
-    #scico::scale_fill_scico(palette = "bamako", direction = -1, limits = c(0, 140)) + # nolint
+    geom_sf(data = leite_producao, mapping = aes(geometry = geometry, fill = value/1000000)) + # nolint
+    #viridis::scale_fill_viridis(discrete = FALSE) +
+    scale_fill_viridis_c(option = viridris_option) +
+    #scico::scale_fill_scico(palette = "bamako", direction = -1, limits = c(0, 4500)) + # nolint
     labs(
-        title = "Produção de algodão (*Gossypium hirsutum*) ",
+        title = "Leite cru de bovino",
         caption = "**Dados** FAO (ano 2021) **| Plot** Ítalo Monteiro",
-        fill = "Milhões de Toneladas"
+        fill = "Milhões de toneladas"
     ) #1D201F
 col_back <- "white"
 theme_map <- theme_void() +
@@ -126,16 +125,41 @@ p3b  <- p2 +
             barwidth = 20,
                  barheight = .5))
 p3b
-algodao <- p3b
+#leite_rendimeto <- p3b
 ```
 
 
 ```{r}
 ggsave(
-    "Crops and livestock/algodao.png",
-        plot = algodao,
+    "Crops and livestock/leite_rendimeto.png",
+        plot = leite_rendimeto,
             dpi = 600,
             width = 12,
                 height = 8
                 )
+```
+
+```{r}
+rank_crop <- tibble::tribble(
+    ~name,  ~item, ~value,
+
+    "United States",     "Maize",        "384.",
+    "China",             "Rice",         "214.",
+    "China2",             "Wheat",        "137.",
+    "Brazil",            "Soya",   "135.",
+    "Russian",           "Barley",       "18.0",
+    "China3",             "cotton",       "17.4",
+    "India",             "Millet",       "13.2",
+    "United States2",     "Sorghum",      "11.4",
+    "China4",            "colza",       "14.7"
+) 
+
+
+rank_crop |>
+    dplyr::mutate(value = readr::parse_number(value)) |>
+        ggplot(aes(x = value, y = reorder(name, value),
+                fill = as.factor(item)
+                )
+            ) +
+        geom_col()
 ```
