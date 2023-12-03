@@ -145,5 +145,7 @@ plot_leite
 ggsave(
     "Crops and livestock/plot_leite.png",
         plot = plot_leite,
-            dpi = 600)
+            dpi = 600,
+            width = 12,
+            height = 8)
 ```
