@@ -1,0 +1,139 @@
+---
+title: ""
+description: ""
+author script: 
+  - name: "Ítalo Marques-Monteiro"
+    github: https://github.com/italomarquesmonteiro
+    kaggle: https://www.kaggle.com/talomarquesmonteiro
+    linkedin: linkedin.com/in/ítalo-monteiro-0b2516144
+    lattes: http://lattes.cnpq.br/7174985368517137
+    orcid_id: https://orcid.org/0000-0003-4367-1034
+    affiliation: Smart Data
+        
+date: "2023-11-27"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+temp <- readr::read_csv(
+    "c:/Users/italo/OneDrive/Área de Trabalho/VsCode/faostats/FAOStat Crops and livestock products.csv") |> # nolint
+    janitor::clean_names("snake") |>
+    dplyr::mutate(
+        name = dplyr::if_else(
+            stringr::str_detect(
+                area, "China"), "China", area),
+        name = dplyr::case_when(
+            area == "Bolivia (Plurinational State of)" ~ "Bolivia",
+            area == "Czechia" ~ "Czech Republic",
+            area == "Democratic People's Republic of Korea" ~ "Dem. Rep. Korea",
+            area == "Iran (Islamic Republic of)" ~ "Iran",
+            area == "Lao People's Democratic Republic" ~ "Lao PDR",
+            area == "Syrian Arab Republic" ~ "Syria",
+            area == "Türkiye" ~ "Turkey",
+            area == "United Republic of Tanzania" ~ "Tanzania",
+            area == "United States of America" ~ "United States",
+            area == "United Kingdom of Great Britain and Northern Ireland" ~ "United Kingdom", # nolint
+            area == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
+            area == "Viet Nam" ~ "Vietnam",
+            TRUE~ area
+        ), .before = element_code
+    ) |>
+    dplyr::select(name, element, item, unit, value) |>
+    dplyr::glimpse()
+```
+
+```{r}
+leite_producao <- temp |>
+    dplyr::filter(
+        item == "Raw milk of cattle" &
+        element == "Production" &
+        !name == "China, mainland" 
+    ) |>
+    dplyr::mutate(
+        #mt = value / 1000000,
+        #mt = round(mt, digits = 0),
+        #mt = as.character(mt),
+        name = as.factor(name)
+    ) |>
+    dplyr::arrange(desc(value))
+```
+
+
+```{r}
+leite_producao <- leite_producao |>
+    dplyr::filter(value >= 21370116.) |>
+    dplyr::mutate(
+        color.group = if_else(as.numeric(value) <=  108290000, "group1" , "group2")) |>
+    dplyr::mutate(
+        name = case_when(
+            name == "Russian Federation" ~ "Russian",
+            TRUE~ name # nolint: infix_spaces_linter.
+        ),
+        color = case_when(
+            row_number() == 4 ~ "goldenrod2",
+            TRUE~ "gray70" # nolint: infix_spaces_linter.
+        )
+    )
+```
+
+```{r}
+plot_leite <- leite_producao |>
+    ggplot(aes(x = value, y = reorder(name, value))) +
+    geom_col(aes(fill = color)) +
+    scale_fill_identity(guide = "none") +
+    ggimage::geom_image(aes(x = 0.1, y = 10, image = image), data = india,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 9, image = image), data = united_states,  size = 0.065) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 8, image = image), data = china,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 7, image = image), data = brazil,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 6, image = image), data = germany,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 5, image = image), data = russian,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 4, image = image), data = france,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 3, image = image), data = pakistan,  size = 0.06) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 2, image = image), data = newzeland,  size = 0.065) + # nolint
+    ggimage::geom_image(aes(x = 0.1, y = 1, image = image), data = turkey,  size = 0.06) + # nolint
+    labs(
+        title = "Raw milk of cattle",
+        caption = "Data: FAO (year 2021) | Plot: Ítalo Monteiro") +
+    theme(
+        plot.title = ggtext::element_markdown(face = "bold", family = "Fira Sans", size = 30, hjust = 0.1, color = "gray90"), # nolint
+        plot.subtitle = ggtext::element_markdown(face = "bold", family = "Fira Sans", size = 15, color = "gray50", hjust = 0.1), # nolint
+        plot.caption = ggtext::element_markdown(face = "bold", family = "Fira Sans", size = 13, color = "gray90"), # nolint
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = ggtext::element_markdown(face = "bold", family = "Fira Sans",size = 15, hjust = 1, color = "gray50"), # nolint,
+        axis.text.x = element_blank(),
+        plot.margin = margin(rep(15, 4)),
+        panel.grid = element_line(color = "grey30"),
+        panel.background = element_rect(fill = "#1D201F", color = "#1D201F"),
+        plot.background = element_rect(fill = "#1D201F", color = "#1d201f")) +
+    #annotate("rect", xmin = 103, xmax = 108, ymin = 9.8, ymax = 10.2, alpha = 5, color = "gray90") +
+    annotate("text", x = 95000000, y = 10, label = "108 Millions of tons", color = "black",
+             size     = 6, 
+             family   = "Fira Sans", 
+             fontface = "bold") +
+    geom_text(
+        aes(x = value,
+            label=format(round(value/1000000, digits = 0)),
+            group = as.factor(name),
+            color = color.group),
+            hjust = 2, nudge_x = -.5,
+            fontface = "bold",
+            size = 5,
+            family = "Fira Sans"
+            )  +
+       scale_color_manual(values = c("black", "grey70"))+
+       guides(color = "none")
+
+plot_leite
+```
+
+```{r}
+ggsave(
+    "Crops and livestock/plot_leite.png",
+        plot = plot_leite,
+            dpi = 600)
+```
