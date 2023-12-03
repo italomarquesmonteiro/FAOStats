@@ -39,7 +39,7 @@ temp <- readr::read_csv(
             area == "United Kingdom of Great Britain and Northern Ireland" ~ "United Kingdom", # nolint
             area == "Venezuela (Bolivarian Republic of)" ~ "Venezuela",
             area == "Viet Nam" ~ "Vietnam",
-            TRUE~ area
+            TRUE~ area # nolint: infix_spaces_linter.
         ), .before = element_code
     ) |>
     dplyr::select(name, element, item, unit, value) |>
@@ -51,14 +51,9 @@ leite_producao <- temp |>
     dplyr::filter(
         item == "Raw milk of cattle" &
         element == "Production" &
-        !name == "China, mainland" 
+        !name == "China, mainland"
     ) |>
-    dplyr::mutate(
-        #mt = value / 1000000,
-        #mt = round(mt, digits = 0),
-        #mt = as.character(mt),
-        name = as.factor(name)
-    ) |>
+    dplyr::mutate(name = as.factor(name)) |>
     dplyr::arrange(desc(value))
 ```
 
@@ -67,18 +62,35 @@ leite_producao <- temp |>
 leite_producao <- leite_producao |>
     dplyr::filter(value >= 21370116.) |>
     dplyr::mutate(
-        color.group = if_else(as.numeric(value) <=  108290000, "group1" , "group2")) |>
+        color.group = if_else(as.numeric(value) <=  108290000, "group1" , "group2")) |> # nolint
     dplyr::mutate(
         name = case_when(
             name == "Russian Federation" ~ "Russian",
-            TRUE~ name # nolint: infix_spaces_linter.
+                TRUE~ name # nolint: infix_spaces_linter.
         ),
         color = case_when(
             row_number() == 4 ~ "goldenrod2",
-            TRUE~ "gray70" # nolint: infix_spaces_linter.
+                TRUE~ "gray70" # nolint: infix_spaces_linter.
         )
     )
 ```
+
+
+ Flag of 
+```{r}
+india <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_India.png") # nolint
+united_states <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_the_United_States.png") # nolint
+china <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_the_People's_Republic_of_China.png") # nolint
+brazil <- data.frame(image  = "C:/Users/italo/Downloads/Flags/Flag_of_Brazil.png") # nolint
+germany <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_Germany.png") # nolint
+russian <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_Russia.png") # nolint
+france <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_France.png") # nolint
+pakistan <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_Pakistan.png") # nolint
+newzeland <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_New_Zealand.png") # nolint
+turkey <- data.frame(image = "C:/Users/italo/Downloads/Flags/Flag_of_Turkey.png") # nolint
+```
+
+
 
 ```{r}
 plot_leite <- leite_producao |>
@@ -110,24 +122,22 @@ plot_leite <- leite_producao |>
         panel.grid = element_line(color = "grey30"),
         panel.background = element_rect(fill = "#1D201F", color = "#1D201F"),
         plot.background = element_rect(fill = "#1D201F", color = "#1d201f")) +
-    #annotate("rect", xmin = 103, xmax = 108, ymin = 9.8, ymax = 10.2, alpha = 5, color = "gray90") +
-    annotate("text", x = 95000000, y = 10, label = "108 Millions of tons", color = "black",
-             size     = 6, 
-             family   = "Fira Sans", 
+    annotate("text", x = 95000000, y = 10, label = "108 Millions of tons", color = "black", # nolint
+             size = 6,
+             family = "Fira Sans",
              fontface = "bold") +
     geom_text(
         aes(x = value,
-            label=format(round(value/1000000, digits = 0)),
-            group = as.factor(name),
-            color = color.group),
-            hjust = 2, nudge_x = -.5,
-            fontface = "bold",
-            size = 5,
+            label = format(round(value / 1000000, digits = 0)),
+                group = as.factor(name),
+                    color = color.group),
+                        hjust = 2, nudge_x = -.5,
+                    fontface = "bold",
+                size = 5,
             family = "Fira Sans"
             )  +
-       scale_color_manual(values = c("black", "grey70"))+
+       scale_color_manual(values = c("black", "grey70")) +
        guides(color = "none")
-
 plot_leite
 ```
 
