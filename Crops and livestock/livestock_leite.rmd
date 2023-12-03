@@ -122,10 +122,6 @@ plot_leite <- leite_producao |>
         panel.grid = element_line(color = "grey30"),
         panel.background = element_rect(fill = "#1D201F", color = "#1D201F"),
         plot.background = element_rect(fill = "#1D201F", color = "#1d201f")) +
-    annotate("text", x = 95000000, y = 10, label = "108 Millions of tons", color = "black", # nolint
-             size = 6,
-             family = "Fira Sans",
-             fontface = "bold") +
     geom_text(
         aes(x = value,
             label = format(round(value / 1000000, digits = 0)),
@@ -136,8 +132,12 @@ plot_leite <- leite_producao |>
                 size = 5,
             family = "Fira Sans"
             )  +
-       scale_color_manual(values = c("black", "grey70")) +
-       guides(color = "none")
+    scale_color_manual(values = c("#1d201f", "grey70")) +
+    guides(color = "none") +
+    annotate("text", x = 94000000, y = 10, label = "108 Millions of tons", color = "#1d201f", # nolint
+             size = 6,
+             family = "Fira Sans",
+             fontface = "bold")
 plot_leite
 ```
 
@@ -145,7 +145,8 @@ plot_leite
 ggsave(
     "Crops and livestock/plot_leite.png",
         plot = plot_leite,
-            dpi = 600,
-            width = 12,
-            height = 8)
+            dpi = 450,
+            width = 13.5,
+            height = 8
+            )
 ```
