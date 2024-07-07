@@ -1,0 +1,24 @@
+---
+
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+rural <- readr::read_csv("c:\\Users\\italo\\Downloads\\FAOSTAT_data_en_7-6-2024.csv") |>
+  janitor::clean_names("snake") |>
+  dplyr::glimpse()
+```
+
+```{r}
+unique(rural$domain_code)
+```
+
+```{r}
+rural |>
+  distinct(note) |>
+  #pull(domain) |>
+  print(n = 21)
+```
