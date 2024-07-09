@@ -9,16 +9,62 @@ library(tidyverse)
 ```{r}
 rural <- readr::read_csv("c:\\Users\\italo\\Downloads\\FAOSTAT_data_en_7-6-2024.csv") |>
   janitor::clean_names("snake") |>
+  dplyr::select(
+    indicador = indicator,
+    sexo = sex,
+    ano = year,
+    unidade = unit,
+    valor = value
+    ) |>
   dplyr::glimpse()
 ```
 
 ```{r}
-unique(rural$domain_code)
+rural |>
+  dplyr::distinct(sex) |>
+  #dplyr::pull(note) |>
+  print(n = 21)
 ```
 
 ```{r}
-rural |>
-  distinct(note) |>
-  #pull(domain) |>
-  print(n = 21)
+rural_traduzido <- rural |>
+  dplyr::mutate(
+    indicador = case_when(
+      indicador == "Employment by age, total (15+), rural areas" ~ "Emprego por idade, total (15+)",
+      indicador == "Employment by age, 15 to 24, rural areas" ~ "Emprego por idade, 15 a 24 anos",
+      indicador == "Employment by age, 25 to 54, rural areas" ~ "Emprego por idade, 25 a 54 anos",
+      indicador == "Employment by age, 55 to 64, rural areas" ~ "Emprego por idade, 55 a 64 anos",
+      indicador == "Employment by age, 65+, rural areas" ~ "Emprego por idade, 65+",
+      indicador == "Employment by status of employment, total, rural areas" ~ "Emprego por status de emprego, total",
+      indicador == "Employment by status of employment, employees, rural areas" ~ "Emprego por status de emprego, empregados",
+      indicador == "Employment by status of employment, self-employed, rural areas" ~ "Emprego por status de emprego, autônomos",
+      indicador == "Labour force participation rate by age, total (15+), rural areas" ~ "Taxa de participação na força de trabalho por idade, total (15+)",
+      indicador == "Labour force participation rate by age, 15 to 24, rural areas" ~ "Taxa de participação na força de trabalho por idade, 15 a 24 anos",
+      indicador == "Labour force participation rate by age, 25 to 54, rural areas" ~ "Taxa de participação na força de trabalho por idade, 25 a 54 anos",
+      indicador == "Labour force participation rate by age, 55 to 64, rural areas" ~ "Taxa de participação na força de trabalho por idade, 55 a 64 anos",
+      indicador == "Labour force participation rate by age, 65+, rural areas" ~ "Taxa de participação na força de trabalho por idade, 65+",
+      indicador == "Employment-to-population ratio by age, total (15+), rural areas" ~ "Proporção de emprego em relação à população por idade, total (15+)",
+      indicador == "Employment-to-population ratio by age, 15 to 24, rural areas" ~ "Proporção de emprego em relação à população por idade, 15 a 24 anos",
+      indicador == "Employment-to-population ratio by age, 25 to 54, rural areas" ~ "Proporção de emprego em relação à população por idade, 25 a 54 anos",
+      indicador == "Employment-to-population ratio by age, 55 to 64, rural areas" ~ "Proporção de emprego em relação à população por idade, 55 a 64 anos",
+      indicador == "Employment-to-population ratio by age, 65+, rural areas" ~ "Proporção de emprego em relação à população por idade, 65+",
+      indicador == "Share of employment by status of employment, total, rural areas" ~ "Participação do emprego por status de emprego, total",
+      indicador == "Share of employment by status of employment, employees, rural areas" ~ "Participação do emprego por status de emprego, empregados",
+      indicador == "Share of employment by status of employment, self-employed, rural areas" ~ "Participação do emprego por status de emprego, autônomos"
+      ),
+    sexo = case_when(
+        sexo == "Male" ~ "Masculino",
+        sexo == "Female" ~ "Feminino"
+    )
+  )
+```
+
+
+```{r}
+rural_traduzido |>
+  dplyr::filter(str_detect(indicador, "Proporção de emprego em relação à população por idade"))|>
+  dplyr::filter(!indicador == "Proporção de emprego em relação à população por idade, total (15+)")|>
+  ggplot(aes(x = ano, y = valor, color = indicador)) +
+  geom_line(linewidth = 2) +
+  facet_grid(~sexo)
 ```
