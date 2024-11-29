@@ -30,10 +30,19 @@ Este projeto faz análise descritiva com o objetivo fornecer uma compreensão ab
 
 O [FAOStat](https://www.fao.org/faostat/en/#data) inclui informações sobre produção agrícola e pecuária, comércio, preços de alimentos, uso da terra, população rural e muito mais, sendo uma referência importante para pesquisadores, formuladores de políticas e profissionais do setor agrícola.
 
-## 🌾 Agricultura 🚜🌽
-
-<img style="width:px; height:px;" src=".github\.vscode\Crops and livestock\Images crops\soja.png" alt="Soja">
-
 ## 🥩 Pecuária 🐄🐓🐑🐖
 
-<img style="width:px; height:px;" src=".github\.vscode\Crops and livestock\Images livestock\plot_leite.png" alt="Leite">
+<img style="width:px; height:px;" src=".github\.vscode\Crops-Livestock\Images livestock\plot_leite.png" alt="Leite">
+
+<img style="width:px; height:px;" src=".github\.vscode\Crops-Livestock\Images livestock\animal_protein.png" alt="Meat">
+
+<img style="width:px; height:px;" src=".github\.vscode\Food segurity\OfertaProteinaAnimal.png" alt="PB">
+
+
+## 🌾 Agricultura 🚜🌽
+
+<img style="width:px; height:px;" src=".github\.vscode\Crops-Livestock\Images crops\soja.png" alt="Soja">
+
+<img style="width:px; height:px;" src=".github\.vscode\Crops-Livestock\Images crops\arroz.png" alt="Arroz">
+
+<img style="width:px; height:px;" src=".github\.vscode\Crops-Livestock\Images crops\milho.png" alt="Milho">
